@@ -15,6 +15,10 @@ model User {
   locationIso    String?         @map("location_iso") @db.Char(2)
   createdAt      DateTime        @default(now()) @map("created_at")
 
+  interests Interest[]
+  transactions Transaction[]
+
+
   @@index([isPremium])
   @@index([verifiedGender])
   @@index([locationIso])
@@ -26,4 +30,41 @@ enum VerifiedGender {
   MALE
   FEMALE
   OTHER
+}
+
+model Interest{
+  id       Int    @id @default(autoincrement())
+  tag_name String
+
+  user_id  Int
+  user     User   @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  @@unique([user_id, tag_name])
+  @@index([user_id])
+  @@map("interests")
+}
+
+model Transaction {
+  id            Int      @id @default(autoincrement())
+  user_id       Int
+  amount        Decimal  @db.Decimal(10, 2)
+  currency      String   @db.Char(3)
+  provider_ref  String   @unique
+  timestamp     DateTime @map("timestamp")
+
+  user          User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@index([timestamp])
+  @@map("transactions")
+}
+
+model AnalyticsSnapshot {
+  id                   Int      @id @default(autoincrement())
+  timestamp            DateTime
+  active_users         Int
+  channel_distribution Json
+  revenue_total        Decimal  @db.Decimal(12, 2)
+
+  @@index([timestamp, active_users])
+  @@map("analytics_snapshots")
 }
